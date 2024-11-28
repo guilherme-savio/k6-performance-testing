@@ -4,30 +4,35 @@ import http from 'k6/http';
 import { check } from 'k6';
 import { Trend, Rate } from 'k6/metrics';
 
-export const getContactsDuration = new Trend('get_contacts', true);
+export const getShowsDuration = new Trend('get_shows', true);
 export const RateContentOK = new Rate('content_OK');
 
 export const options = {
   thresholds: {
-    http_req_failed: ['rate<0.30'],
-    get_contacts: ['p(99)<500'],
-    content_OK: ['rate>0.95']
+    http_req_failed: ['rate<0.12'],
+    get_shows: ['p(95)<5700'],
+    content_OK: ['rate>0.90']
   },
   stages: [
-    { duration: '10s', target: 5 },
-    { duration: '20s', target: 15 }
+    
+    { duration: '20s', target: 10 },
+    { duration: '40s', target: 20 },
+    { duration: '15s', target: 40 },
+    { duration: '30s', target: 40 },
+    { duration: '20s', target: 80 },
+    { duration: '40s', target: 80 },
+    { duration: '135s', target: 300 }
   ]
 };
 
 export function handleSummary(data) {
   return {
-    './src/output/index.html': htmlReport(data),
-    stdout: textSummary(data, { indent: ' ', enableColors: true })
+    './src/output/index.html': htmlReport(data)
   };
 }
 
 export default function () {
-  const baseUrl = 'https://test.k6.io/';
+  const baseUrl = 'http://api.tvmaze.com/search/shows?q=postman';
 
   const params = {
     headers: {
@@ -39,11 +44,11 @@ export default function () {
 
   const res = http.get(`${baseUrl}`, params);
 
-  getContactsDuration.add(res.timings.duration);
+  getShowsDuration.add(res.timings.duration);
 
   RateContentOK.add(res.status === OK);
 
   check(res, {
-    'GET Contacts - Status 200': () => res.status === OK
+    'GET TV Shows - Status 200': () => res.status === OK
   });
 }
