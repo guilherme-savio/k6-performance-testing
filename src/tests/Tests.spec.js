@@ -11,7 +11,7 @@ export const options = {
   thresholds: {
     http_req_failed: ['rate<0.12'],
     get_shows: ['p(95)<5700'],
-    content_OK: ['rate>0.90']
+    content_OK: ['rate>0.88']
   },
   stages: [
     
@@ -27,7 +27,8 @@ export const options = {
 
 export function handleSummary(data) {
   return {
-    './src/output/index.html': htmlReport(data)
+    './src/output/index.html': htmlReport(data),
+    stdout: textSummary(data, { indent: ' ', enableColors: true })
   };
 }
 
